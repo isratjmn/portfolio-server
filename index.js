@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const port = process.env.PORT || 5000;
 require("dotenv").config();
+const { ObjectId } = require("mongodb");
+
 const crypto = require("crypto");
 
 // Middleware
@@ -140,6 +142,12 @@ async function run() {
 			}
 		});
 
+		app.post("/api/resume", async (req, res) => {
+			const newItem = req.body;
+			const result = await resumeCollection.insertOne(newItem);
+			res.send(result);
+		});
+
 		app.get("/api/portfolios", async (req, res) => {
 			try {
 				const portfolios = await portfolioCollection.find().toArray();
@@ -149,6 +157,21 @@ async function run() {
 				res.status(500).json({ error: "Error fetching portfolios" });
 			}
 		});
+
+		app.post("/api/portfolios", async (req, res) => {
+			const newItem = req.body;
+			const result = await portfolioCollection.insertOne(newItem);
+			res.send(result);
+		});
+
+		app.delete("/api/portfolios/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+
+			const result = await portfolioCollection.deleteOne(query);
+			res.send(result);
+		});
+
 		app.get("/api/skills", async (req, res) => {
 			try {
 				const skills = await skillsCollection.find().toArray();
@@ -158,6 +181,20 @@ async function run() {
 				res.status(500).json({ error: "Error fetching portfolios" });
 			}
 		});
+
+		app.post("/api/skills", async (req, res) => {
+			const newItem = req.body;
+			const result = await skillsCollection.insertOne(newItem);
+			res.send(result);
+		});
+
+		app.delete("/api/skills/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const result = await skillsCollection.deleteOne(query);
+			res.send(result);
+		});
+
 		app.get("/api/contact", async (req, res) => {
 			try {
 				const contact = await contactCollection.find().toArray();
@@ -166,6 +203,12 @@ async function run() {
 				console.error("Error fetching portfolios", error);
 				res.status(500).json({ error: "Error fetching portfolios" });
 			}
+		});
+
+		app.post("/api/contact", async (req, res) => {
+			const contact = req.body;
+			const result = await contactCollection.insertOne(contact);
+			res.send(result);
 		});
 
 		await client.db("admin").command({ ping: 1 });
