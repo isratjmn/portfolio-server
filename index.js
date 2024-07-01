@@ -106,7 +106,7 @@ async function run() {
 				});
 			}
 		});
-
+		// ? Create a User
 		app.post("/api/users", async (req, res) => {
 			const user = req.body;
 			const query = { email: user.email };
@@ -123,6 +123,7 @@ async function run() {
 			res.status(201).json({ result, token });
 		});
 
+		// ? Get all Stats
 		app.get("/api/stats", async (req, res) => {
 			try {
 				const stats = await statsCollection.find().toArray();
@@ -133,6 +134,7 @@ async function run() {
 			}
 		});
 
+		// ? Get all Resume
 		app.get("/api/resume", async (req, res) => {
 			try {
 				const resume = await resumeCollection.find().toArray();
@@ -142,13 +144,15 @@ async function run() {
 				res.status(500).json({ error: "Error fetching resume" });
 			}
 		});
-
+		
+		// ? Create a Resume
 		app.post("/api/resume", async (req, res) => {
 			const newItem = req.body;
 			const result = await resumeCollection.insertOne(newItem);
 			res.send(result);
 		});
 
+		// ? Delete a Resume
 		app.delete("/api/resume/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -156,6 +160,7 @@ async function run() {
 			res.send(result);
 		});
 
+		// ? Update a Resume
 		app.put("/api/resume/:id", async (req, res) => {
 			const id = req.params.id;
 			const updatedResume = req.body;
@@ -178,6 +183,7 @@ async function run() {
 			}
 		});
 
+		// ? Get all Portfolios
 		app.get("/api/portfolios", async (req, res) => {
 			try {
 				const portfolios = await portfolioCollection.find().toArray();
@@ -188,12 +194,14 @@ async function run() {
 			}
 		});
 
+		// ? Post a Portfolio
 		app.post("/api/portfolios", async (req, res) => {
 			const newItem = req.body;
 			const result = await portfolioCollection.insertOne(newItem);
 			res.send(result);
 		});
 
+		// ? Delete a Portfolio
 		app.delete("/api/portfolios/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -202,6 +210,7 @@ async function run() {
 			res.send(result);
 		});
 
+		// ? Update a Portfolio
 		app.put("/api/portfolios/:id", async (req, res) => {
 			const id = req.params.id;
 			const updatedPortfolio = req.body;
@@ -224,6 +233,7 @@ async function run() {
 			}
 		});
 
+		// ? Get all Skills
 		app.get("/api/skills", async (req, res) => {
 			try {
 				const skills = await skillsCollection.find().toArray();
@@ -234,12 +244,14 @@ async function run() {
 			}
 		});
 
+		// ? Post a Skill
 		app.post("/api/skills", async (req, res) => {
 			const newItem = req.body;
 			const result = await skillsCollection.insertOne(newItem);
 			res.send(result);
 		});
 
+		// ? Delete a Skill
 		app.delete("/api/skills/:id", async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -247,6 +259,7 @@ async function run() {
 			res.send(result);
 		});
 
+		// ? Update a Skill
 		app.put("/api/skills/:id", async (req, res) => {
 			const id = req.params.id;
 			const updatedSkill = req.body;
@@ -269,6 +282,7 @@ async function run() {
 			}
 		});
 
+		// ? Get a Contact
 		app.get("/api/contact", async (req, res) => {
 			try {
 				const contact = await contactCollection.find().toArray();
@@ -279,28 +293,32 @@ async function run() {
 			}
 		});
 
+		// ? Post a Contact
 		app.post("/api/contact", async (req, res) => {
 			const contact = req.body;
 			const result = await contactCollection.insertOne(contact);
 			res.send(result);
 		});
 
+		// ? Get all Blogs
 		app.get("/api/blogs", async (req, res) => {
 			try {
-				const contact = await blogsCollection.find().toArray();
-				res.json(contact);
+				const blogs = await blogsCollection.find().toArray();
+				res.json(blogs);
 			} catch (error) {
 				console.error("Error fetching portfolios", error);
 				res.status(500).json({ error: "Error fetching portfolios" });
 			}
 		});
 
+		// ? Post a Blog
 		app.post("/api/blogs", async (req, res) => {
-			const contact = req.body;
-			const result = await blogsCollection.insertOne(contact);
+			const blogs = req.body;
+			const result = await blogsCollection.insertOne(blogs);
 			res.send(result);
 		});
 
+		// ? Get a Blog
 		app.get("/blogs/:id", async (req, res) => {
 			try {
 				const blog = await blogsCollection.findOne({
