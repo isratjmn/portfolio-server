@@ -69,6 +69,7 @@ async function run() {
 		const skillsCollection = db.collection("skills");
 		const statsCollection = db.collection("stats");
 		const usersCollection = db.collection("users");
+		const blogsCollection = db.collection("blogs");
 
 		const secretKey = crypto.randomBytes(64).toString("hex");
 		console.log(secretKey);
@@ -148,6 +149,35 @@ async function run() {
 			res.send(result);
 		});
 
+		app.delete("/api/resume/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const result = await resumeCollection.deleteOne(query);
+			res.send(result);
+		});
+
+		app.put("/api/resume/:id", async (req, res) => {
+			const id = req.params.id;
+			const updatedResume = req.body;
+			try {
+				const query = { _id: new ObjectId(id) };
+				const updateDocument = {
+					$set: updatedResume,
+				};
+				const result = await resumeCollection.updateOne(
+					query,
+					updateDocument
+				);
+				if (result.matchedCount === 0) {
+					res.status(404).json({ message: "Resume not found" });
+				} else {
+					res.json(result);
+				}
+			} catch (error) {
+				res.status(500).json({ error: "Error updating Resume" });
+			}
+		});
+
 		app.get("/api/portfolios", async (req, res) => {
 			try {
 				const portfolios = await portfolioCollection.find().toArray();
@@ -170,6 +200,28 @@ async function run() {
 
 			const result = await portfolioCollection.deleteOne(query);
 			res.send(result);
+		});
+
+		app.put("/api/portfolios/:id", async (req, res) => {
+			const id = req.params.id;
+			const updatedPortfolio = req.body;
+			try {
+				const query = { _id: new ObjectId(id) };
+				const updateDocument = {
+					$set: updatedPortfolio,
+				};
+				const result = await portfolioCollection.updateOne(
+					query,
+					updateDocument
+				);
+				if (result.matchedCount === 0) {
+					res.status(404).json({ message: "Portfolio not found" });
+				} else {
+					res.json(result);
+				}
+			} catch (error) {
+				res.status(500).json({ error: "Error updating Portfolio" });
+			}
 		});
 
 		app.get("/api/skills", async (req, res) => {
@@ -195,6 +247,28 @@ async function run() {
 			res.send(result);
 		});
 
+		app.put("/api/skills/:id", async (req, res) => {
+			const id = req.params.id;
+			const updatedSkill = req.body;
+			try {
+				const query = { _id: new ObjectId(id) };
+				const updateDocument = {
+					$set: updatedSkill,
+				};
+				const result = await skillsCollection.updateOne(
+					query,
+					updateDocument
+				);
+				if (result.matchedCount === 0) {
+					res.status(404).json({ message: "Skill not found" });
+				} else {
+					res.json(result);
+				}
+			} catch (error) {
+				res.status(500).json({ error: "Error updating skill" });
+			}
+		});
+
 		app.get("/api/contact", async (req, res) => {
 			try {
 				const contact = await contactCollection.find().toArray();
@@ -208,6 +282,22 @@ async function run() {
 		app.post("/api/contact", async (req, res) => {
 			const contact = req.body;
 			const result = await contactCollection.insertOne(contact);
+			res.send(result);
+		});
+
+		app.get("/api/blogs", async (req, res) => {
+			try {
+				const contact = await blogsCollection.find().toArray();
+				res.json(contact);
+			} catch (error) {
+				console.error("Error fetching portfolios", error);
+				res.status(500).json({ error: "Error fetching portfolios" });
+			}
+		});
+
+		app.post("/api/blogs", async (req, res) => {
+			const contact = req.body;
+			const result = await blogsCollection.insertOne(contact);
 			res.send(result);
 		});
 
@@ -231,5 +321,4 @@ async function run() {
 		console.error("Connection error", error);
 	}
 }
-
 run().catch(console.error);
