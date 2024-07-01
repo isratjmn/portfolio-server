@@ -1,9 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const port = process.env.PORT || 5000;
 require("dotenv").config();
+const crypto = require("crypto");
 
 // Middleware
 app.use(cors());
@@ -24,6 +27,36 @@ const client = new MongoClient(uri, {
 	},
 });
 
+// Function to hash password
+const hashPassword = async (password) => {
+	const salt = await bcrypt.genSalt(10);
+	return bcrypt.hash(password, salt);
+};
+
+// Middleware to verify JWT token
+const verifyJWT = (req, res, next) => {
+	const authorization = req.headers.authorization;
+	if (!authorization) {
+		console.error("No authorization header");
+		return res
+			.status(401)
+			.send({ error: true, message: "unauthorized access" });
+	}
+
+	const token = authorization.split(" ")[1];
+	jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+		if (err) {
+			console.error("Token verification failed:", err);
+			return res
+				.status(401)
+				.send({ error: true, message: "unauthorized access" });
+		}
+		req.decoded = decoded;
+		next();
+	});
+};
+
+// Connect to MongoDB and start server
 async function run() {
 	try {
 		await client.connect();
@@ -33,6 +66,60 @@ async function run() {
 		const contactCollection = db.collection("contact");
 		const skillsCollection = db.collection("skills");
 		const statsCollection = db.collection("stats");
+		const usersCollection = db.collection("users");
+
+		const secretKey = crypto.randomBytes(64).toString("hex");
+		console.log(secretKey);
+
+		const verifyAdmin = async (req, res, next) => {
+			const email = req.decoded.email;
+			const query = { email: email };
+			const user = await usersCollection.findOne(query);
+			if (user?.role !== "admin") {
+				return res
+					.status(403)
+					.send({ error: true, message: "forbidden message" });
+			}
+			next();
+		};
+
+		app.post("/jwt", (req, res) => {
+			const user = req.body;
+			const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
+				expiresIn: "1h",
+			});
+			res.send({ token });
+		});
+
+		app.get("/api/users", async (req, res) => {
+			try {
+				const result = await usersCollection.find().toArray();
+				res.send(result);
+			} catch (error) {
+				console.error("Error fetching users:", error);
+				res.status(500).send({
+					error: true,
+					message: "Failed to fetch users",
+				});
+			}
+		});
+
+		app.post("/api/users", async (req, res) => {
+			const user = req.body;
+			const query = { email: user.email };
+			const existingUser = await usersCollection.findOne(query);
+			if (existingUser) {
+				return res.status(409).json({ message: "User Already Exists" });
+			}
+			const result = await usersCollection.insertOne(user);
+			const token = jwt.sign(
+				{ email: user.email },
+				process.env.ACCESS_TOKEN,
+				{ expiresIn: "1h" }
+			);
+			res.status(201).json({ result, token });
+		});
+
 		app.get("/api/stats", async (req, res) => {
 			try {
 				const stats = await statsCollection.find().toArray();
@@ -85,6 +172,10 @@ async function run() {
 		console.log(
 			"Pinged your deployment. You successfully connected to MongoDB!"
 		);
+
+		app.get("/api/protected", verifyJWT, (req, res) => {
+			res.json({ message: "Access granted", user: req.decoded });
+		});
 
 		app.get("/", (req, res) => {
 			res.send(`Portfolio is running on port ${port}`);
